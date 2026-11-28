@@ -373,6 +373,50 @@ address from a client on the LAN: `ssh -o HostName=rama.local rama`.
 
 Check from the client: `ssh rama 'ruby -v'` prints mise's Ruby.
 
+### Connect from rama to another machine
+
+rama can open `neuromancer`, `cortex` and `sophon` by name once it holds the
+key for that machine. The private keys are kept on the primary development
+machine, which is Neuromancer. rama normally holds none, so `ssh cortex` from
+rama is refused until it is given the key.
+
+To give rama the key for cortex:
+
+1. On Neuromancer, copy the key to rama:
+
+   ```bash
+   scp ~/.ssh/id_ed25519_cortex rama:.ssh/
+   ssh rama 'chmod 600 ~/.ssh/id_ed25519_cortex'
+   ```
+
+2. On rama, connect: `ssh cortex`.
+
+For another machine, use its name in place of `cortex`. The key can stay on
+rama for as long as rama needs the connection.
+
+**The passphrase is meant to be asked once.** ssh asks for it on the first
+connection and hands the unlocked key to rama's ssh-agent, which answers for
+it from then on (`AddKeysToAgent yes` in `~/.ssh/config`). This does not work
+yet in an ssh session into rama: the shell there does not know where the agent
+is, so ssh asks on every connection.
+[#34](https://github.com/jcouball/ubuntu-dev-config/issues/34) is the fix.
+
+**To take a key away from rama,** remove it from the agent and then delete the
+file, in the session the key was used from:
+
+```bash
+ssh-add -d ~/.ssh/id_ed25519_cortex
+rm ~/.ssh/id_ed25519_cortex
+```
+
+Deleting the file alone is not enough: the agent keeps its copy of the key
+for as long as the agent runs. If `ssh-add` answers "Could not open a connection to your
+authentication agent", that session has no agent and so gave it no key; delete
+the file and carry on.
+
+The config reaches each machine by its tailnet name, so Tailscale has to be
+running on rama and on the machine being opened.
+
 ### Replace the key
 
 Every client shares the one key, so replacing it locks all of them out until
