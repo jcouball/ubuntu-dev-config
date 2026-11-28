@@ -1,6 +1,44 @@
 # Outbound connections from rama. Inbound access is authorized_keys, beside
 # this file.
 
+# THE OTHER MACHINES. Each accepts one key, named for the machine it opens.
+# The private keys are kept on the primary development machine, which is
+# Neuromancer, so rama normally holds none. To connect from rama, put a copy
+# of the key at the path its block names. It can stay as long as rama needs
+# the connection. The names are the ones the machines have on the tailnet, so
+# Tailscale has to be running at both ends.
+#
+# These blocks take AddKeysToAgent yes from Host * below: ssh hands the
+# unlocked key to rama's ssh-agent, so the passphrase is asked once. The agent
+# keeps the key after its file is deleted, so taking a key away means
+# `ssh-add -d` as well. The README has the steps.
+
+Host neuromancer
+  HostName neuromancer
+  User james
+  IdentityFile ~/.ssh/id_ed25519_neuromancer
+  IdentitiesOnly yes
+  ForwardAgent no
+  # sshd on the Macs admits IPv4 addresses only, and a tailnet name has an
+  # IPv6 address too.
+  AddressFamily inet
+
+Host cortex
+  HostName cortex
+  User james
+  IdentityFile ~/.ssh/id_ed25519_cortex
+  IdentitiesOnly yes
+  ForwardAgent no
+  # As for neuromancer: IPv4 only.
+  AddressFamily inet
+
+Host sophon
+  HostName sophon
+  User james
+  IdentityFile ~/.ssh/id_ed25519_sophon
+  IdentitiesOnly yes
+  ForwardAgent no
+
 # No ForwardAgent here: a forwarded agent lets the remote host use every loaded
 # key for as long as the session lasts. Turn it on per host, in a Host block
 # above this one, for a host that needs it.
